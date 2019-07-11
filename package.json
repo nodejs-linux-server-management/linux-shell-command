@@ -1,0 +1,31 @@
+{
+	"name": "linux-shell-command",
+	"version": "0.0.1",
+	"description": "Spawn wrapper",
+	"main": "dist/index.js",
+	"scripts": {
+		"test": "tsc && mocha",
+		"build": "tsc",
+		"prepare": "tsc && mocha"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nodejs-linux-server-management/linux-shell-command.git"
+	},
+	"keywords": [
+		"linux",
+		"shell",
+		"command"
+	],
+	"author": "Alexandre Picavet",
+	"license": "GPL-3.0",
+	"bugs": {
+		"url": "https://github.com/nodejs-linux-server-management/linux-shell-command/issues"
+	},
+	"homepage": "https://github.com/nodejs-linux-server-management/linux-shell-command#readme",
+	"devDependencies": {
+		"@types/node": "^12.6.2",
+		"mocha": "^6.1.4",
+		"typescript": "^3.5.3"
+	}
+}
