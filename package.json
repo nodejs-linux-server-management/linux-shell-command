@@ -1,11 +1,12 @@
 {
 	"name": "linux-shell-command",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Spawn wrapper",
 	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"scripts": {
-		"test": "tsc && mocha",
 		"build": "tsc",
+		"test": "tsc && mocha",
 		"prepare": "tsc && mocha"
 	},
 	"repository": {
