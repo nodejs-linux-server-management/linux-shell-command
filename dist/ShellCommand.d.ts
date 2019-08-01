@@ -25,6 +25,7 @@ export declare class ShellCommand {
     events: ShellCommandEvents;
     constructor(command: string, args: string[], expectedExitStatus?: number);
     private processCommand;
+    execute(): Promise<boolean>;
     execute(callback: (success: boolean) => void): void;
     ok(): boolean;
     exitStatusOk(): boolean;

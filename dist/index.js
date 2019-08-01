@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var ShellCommand_1 = require("./ShellCommand");
 function shellCommand(command, args, expectedExitStatus) {
+    if (args === void 0) { args = []; }
     if (expectedExitStatus === void 0) { expectedExitStatus = 0; }
     try {
         var sc = new ShellCommand_1.ShellCommand(command, args, expectedExitStatus);
@@ -13,6 +14,7 @@ function shellCommand(command, args, expectedExitStatus) {
 }
 exports.shellCommand = shellCommand;
 function execute(command, args, expectedExitStatus, callback) {
+    if (args === void 0) { args = []; }
     if (expectedExitStatus === void 0) { expectedExitStatus = 0; }
     if (typeof callback === 'undefined') {
         return new Promise(function (resolve, reject) {
