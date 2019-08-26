@@ -30,10 +30,10 @@ export class ShellCommand {
 		if (platform() !== 'linux') {
 			throw Error("This module only runs on linux");
 		}
-		if(typeof command === 'undefined'){
+		if (typeof command === 'undefined') {
 			throw Error('command must be defined and of type string');
 		}
-		if(typeof args === 'undefined'){
+		if (typeof args === 'undefined') {
 			throw Error('args must be defined and an array of string');
 		}
 		this.command = command;
@@ -70,66 +70,66 @@ export class ShellCommand {
 		}
 	}
 
-	public execute() : Promise<boolean>;
+	public execute(): Promise<boolean>;
 	public execute(callback: (success: boolean) => void): void;
 	public execute(callback?: (success: boolean) => void): Promise<boolean> | void {
-		var result: Promise<boolean> = new Promise((resolve, reject)=>{
-			if (this.processedCommand !== "") {
-				this.spawn = spawn(this.processedCommand, { shell: true });
-				if (this.spawn.pid !== undefined) {
-					this.working = true;
-					this.pid = this.spawn.pid;
-					this.events.emit('pid', this.spawn.pid);
+		if (callback === undefined) {
+			return new Promise<boolean>((resolve, reject) => {
+				try {
+					this.execute((success) => {
+						resolve(success);
+					});
+				} catch (e) {
+					reject(e);
 				}
-	
-				//DATA//
-				this.spawn.stdout.on('data', (data) => {
-					let stdout = data.toString();
-					this.stdout += stdout;
-					this.events.emit('stdout', stdout);
-				});
-				this.spawn.stderr.on('data', (data) => {
-					let stderr = data.toString();
-					this.stderr += stderr;
-					this.events.emit('stderr', stderr);
-				});
-	
-				//END//
-				this.spawn.on('error', (error) => {
-					this.working = false;
-					this.executed = true;
-					this.error = error;
-					this.events.emit('error', error);
-					resolve(false);
-				});
-				this.spawn.on('exit', (code, signal) => {
-					this.working = false;
-					this.executed = true;
-					this.exitStatus = code === null ? 0 : code;
-					this.exitSignal = signal;
-					this.stdout = this.stdout.trim();
-					this.stderr = this.stderr.trim();
-					if (!this.exitStatusOk()) {
-						this.error = Error(this.stderr);
-					}
-					this.events.emit('exit', code, signal);
-					resolve(this.ok());
-				});
-			} else {
-				this.error = Error("No command provided")
-				this.events.emit('error', this.error);
-				reject(this.error);
-			}
-		});
-
-		if(typeof callback === "undefined"){
-			return result;
-		}else{
-			result.then((r)=>{
-				callback(r);
-			}).catch((e)=>{
-				throw e;
 			});
+		}
+
+		if (this.processedCommand !== "") {
+			this.spawn = spawn(this.processedCommand, { shell: true });
+			if (this.spawn.pid !== undefined) {
+				this.working = true;
+				this.pid = this.spawn.pid;
+				this.events.emit('pid', this.spawn.pid);
+			}
+
+			//DATA//
+			this.spawn.stdout.on('data', (data) => {
+				let stdout = data.toString();
+				this.stdout += stdout;
+				this.events.emit('stdout', stdout);
+			});
+			this.spawn.stderr.on('data', (data) => {
+				let stderr = data.toString();
+				this.stderr += stderr;
+				this.events.emit('stderr', stderr);
+			});
+
+			//END//
+			this.spawn.on('error', (error) => {
+				this.working = false;
+				this.executed = true;
+				this.error = error;
+				this.events.emit('error', error);
+				callback(false);
+			});
+			this.spawn.on('exit', (code, signal) => {
+				this.working = false;
+				this.executed = true;
+				this.exitStatus = code === null ? 0 : code;
+				this.exitSignal = signal;
+				this.stdout = this.stdout.trim();
+				this.stderr = this.stderr.trim();
+				if (!this.exitStatusOk()) {
+					this.error = Error(this.stderr);
+				}
+				this.events.emit('exit', code, signal);
+				callback(this.ok());
+			});
+		} else {
+			this.error = Error("No command provided")
+			this.events.emit('error', this.error);
+			throw this.error;
 		}
 	}
 
@@ -142,14 +142,14 @@ export class ShellCommand {
 	}
 
 	public kill(signal?: string): boolean {
-		if(this.spawn !== null){
-			if(!this.spawn.killed){
+		if (this.spawn !== null) {
+			if (!this.spawn.killed) {
 				this.spawn.kill(signal);
 				return this.spawn.killed;
-			}else{
+			} else {
 				throw new Error('already killed');
 			}
-		}else{
+		} else {
 			throw new Error('cannot kill: command isn\'t executed yet');
 		}
 	}

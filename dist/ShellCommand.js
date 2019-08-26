@@ -50,62 +50,62 @@ var ShellCommand = /** @class */ (function () {
     };
     ShellCommand.prototype.execute = function (callback) {
         var _this = this;
-        var result = new Promise(function (resolve, reject) {
-            if (_this.processedCommand !== "") {
-                _this.spawn = child_process_1.spawn(_this.processedCommand, { shell: true });
-                if (_this.spawn.pid !== undefined) {
-                    _this.working = true;
-                    _this.pid = _this.spawn.pid;
-                    _this.events.emit('pid', _this.spawn.pid);
+        if (callback === undefined) {
+            return new Promise(function (resolve, reject) {
+                try {
+                    _this.execute(function (success) {
+                        resolve(success);
+                    });
                 }
-                //DATA//
-                _this.spawn.stdout.on('data', function (data) {
-                    var stdout = data.toString();
-                    _this.stdout += stdout;
-                    _this.events.emit('stdout', stdout);
-                });
-                _this.spawn.stderr.on('data', function (data) {
-                    var stderr = data.toString();
-                    _this.stderr += stderr;
-                    _this.events.emit('stderr', stderr);
-                });
-                //END//
-                _this.spawn.on('error', function (error) {
-                    _this.working = false;
-                    _this.executed = true;
-                    _this.error = error;
-                    _this.events.emit('error', error);
-                    resolve(false);
-                });
-                _this.spawn.on('exit', function (code, signal) {
-                    _this.working = false;
-                    _this.executed = true;
-                    _this.exitStatus = code === null ? 0 : code;
-                    _this.exitSignal = signal;
-                    _this.stdout = _this.stdout.trim();
-                    _this.stderr = _this.stderr.trim();
-                    if (!_this.exitStatusOk()) {
-                        _this.error = Error(_this.stderr);
-                    }
-                    _this.events.emit('exit', code, signal);
-                    resolve(_this.ok());
-                });
+                catch (e) {
+                    reject(e);
+                }
+            });
+        }
+        if (this.processedCommand !== "") {
+            this.spawn = child_process_1.spawn(this.processedCommand, { shell: true });
+            if (this.spawn.pid !== undefined) {
+                this.working = true;
+                this.pid = this.spawn.pid;
+                this.events.emit('pid', this.spawn.pid);
             }
-            else {
-                _this.error = Error("No command provided");
-                _this.events.emit('error', _this.error);
-                reject(_this.error);
-            }
-        });
-        if (typeof callback === "undefined") {
-            return result;
+            //DATA//
+            this.spawn.stdout.on('data', function (data) {
+                var stdout = data.toString();
+                _this.stdout += stdout;
+                _this.events.emit('stdout', stdout);
+            });
+            this.spawn.stderr.on('data', function (data) {
+                var stderr = data.toString();
+                _this.stderr += stderr;
+                _this.events.emit('stderr', stderr);
+            });
+            //END//
+            this.spawn.on('error', function (error) {
+                _this.working = false;
+                _this.executed = true;
+                _this.error = error;
+                _this.events.emit('error', error);
+                callback(false);
+            });
+            this.spawn.on('exit', function (code, signal) {
+                _this.working = false;
+                _this.executed = true;
+                _this.exitStatus = code === null ? 0 : code;
+                _this.exitSignal = signal;
+                _this.stdout = _this.stdout.trim();
+                _this.stderr = _this.stderr.trim();
+                if (!_this.exitStatusOk()) {
+                    _this.error = Error(_this.stderr);
+                }
+                _this.events.emit('exit', code, signal);
+                callback(_this.ok());
+            });
         }
         else {
-            result.then(function (r) {
-                callback(r);
-            }).catch(function (e) {
-                throw e;
-            });
+            this.error = Error("No command provided");
+            this.events.emit('error', this.error);
+            throw this.error;
         }
     };
     ShellCommand.prototype.ok = function () {
