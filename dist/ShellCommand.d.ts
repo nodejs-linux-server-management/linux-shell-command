@@ -23,11 +23,20 @@ export declare class ShellCommand {
     exitStatus: number;
     exitSignal: string | null;
     events: ShellCommandEvents;
+    /**
+     * @throws
+     */
     constructor(command: string, args: string[], expectedExitStatus?: number);
+    /**
+     * @throws
+     */
     private processCommand;
     execute(): Promise<boolean>;
-    execute(callback: (success: boolean) => void): void;
+    execute(callback: (error: Error | null, result: boolean) => void): void;
     ok(): boolean;
     exitStatusOk(): boolean;
+    /**
+     * @throws
+     */
     kill(signal?: string): boolean;
 }

@@ -36,8 +36,12 @@ describe('#shellCommand', () => {
 		it('#Bad platform', (done) => {
 			execute('ls \'!?!\'', ['/']).then(() => {
 				done(new Error('Shouldn\'t work on this platform'));
-			}).catch(() => {
-				done();
+			}).catch((e) => {
+				if (e.message === 'This module only runs on linux'){
+					done();
+				}else{
+					done(new Error(`Didn't expected this error to happend\nError:\n${e}`));
+				}
 			});
 		});
 	}
@@ -48,12 +52,20 @@ describe('#execute (Promise)', () => {
 		it('#Bad number of arguments', (done) => {
 			execute('ls', ['/']).then(() => {
 				done(new Error('Should have thrown an exception: too many arguments'));
-			}).catch(() => {
-				execute('ls \'!?!\'', []).then(() => {
-					done(new Error('Should have thrown an exception: to few arguments'));
-				}).catch(() => {
-					done();
-				});
+			}).catch((e) => {
+				if (e.message === '0 arguments expected but 1 given.'){
+					execute('ls \'!?!\'', []).then(() => {
+						done(new Error('Should have thrown an exception: to few arguments'));
+					}).catch((e) => {
+						if (e.message === '1 arguments expected but 0 given.') {
+							done();
+						}else{
+							done(new Error('Wrong exception'));
+						}
+					});
+				}else{
+					done(new Error('Wrong exception'));
+				}
 			});
 		});
 		it('#Known command', (done) => {
@@ -93,8 +105,12 @@ describe('#execute (Promise)', () => {
 		it('#Bad platform', (done) => {
 			execute('ls \'!?!\'', ['/']).then(() => {
 				done(new Error('Shouldn\'t work on this platform'));
-			}).catch(() => {
-				done();
+			}).catch((e) => {
+				if (e.message === 'This module only runs on linux'){
+					done();
+				}else{
+					done(new Error(`Didn't expected this error to happend\nError:\n${e}`));
+				}
 			});
 		});
 	}
@@ -102,71 +118,116 @@ describe('#execute (Promise)', () => {
 
 describe('#execute (Callback)', () => {
 	if (platform() === 'linux') {
-		it('#Bad number of arguments', () => {
-			assert.throws(() => execute('ls', ['/'], undefined, () => { }), 'Should have thrown an exception: too many arguments');
-			assert.throws(() => execute('ls \'!?!\'', [], undefined, () => { }), 'Should have thrown an exception: to few arguments');
+		it('#Bad number of arguments', (done) => {
+			execute('ls', ['/'], undefined, (error, result) => {
+				if(error){
+					if (error.message === '0 arguments expected but 1 given.'){
+						if(result === undefined){
+							execute('ls \'!?!\'', [], undefined, (error, result) => {
+								if(error){
+									if(error.message === '1 arguments expected but 0 given.'){
+										if(result === undefined){
+											done();
+										}else{
+											done(new Error('The result should be undefined when the error is not null'));
+										}
+									}else{
+										done(new Error('Wrong error given'));
+									}
+								}else{
+									done(new Error('Should get an error: too few arguments'));
+								}
+							});
+						}else{
+							done(new Error('The result should be undefined when the error is not null'));
+						}
+					}else{
+						done(new Error('Wrong error given'));
+					}
+				}else{
+					done(new Error('Should get an error: too many arguments'));
+				}
+			});
 		});
 		it('#Retrieve the shellCommand', (done) => {
 			var scOk = false;
-			var sc = execute('ls', undefined, undefined, (shellCommand, success) => {
-				if (success === true) {
-					if (shellCommand instanceof ShellCommand) {
-						if(scOk === true){
-							done();
-						}else{
-							done(new Error('The sc variable should be an instanceof "ShellCommand" but it isn\'t '));
+			var sc = execute('ls', undefined, undefined, (error, { shellCommand, success }) => {
+				if (error) {
+					done(error);
+				} else {
+					if (success === true) {
+						if (shellCommand instanceof ShellCommand) {
+							if (scOk === true) {
+								done();
+							} else {
+								done(new Error('The sc variable should be an instanceof "ShellCommand" but it isn\'t'));
+							}
+						} else {
+							done(new Error('The shellCommand variable should be an instanceof "ShellCommand" but it isn\'t'));
 						}
 					} else {
-						done(new Error('The shellCommand variable should be an instanceof "ShellCommand" but it isn\'t'));
+						done(shellCommand.error);
 					}
-				} else {
-					done(sc.error);
 				}
 			});
 			scOk = sc instanceof ShellCommand;
 		});
 		it('#Known command', (done) => {
-			try {
-				execute('ls \'!?!\' ', ['/'], undefined, (sc, success) => {
+			execute('ls \'!?!\' ', ['/'], undefined, (error, { shellCommand, success }) => {
+				if (error) {
+					done(new Error(`Didn't expected an error to happend\nError:\n${error}`));
+				} else {
 					if (success) {
 						done();
 					} else {
-						done(sc.error);
+						done(shellCommand.error);
 					}
-				});
-			} catch (e) {
-				done(new Error(`Didn't expected an error to happend\nError:\n${e}`));
-			}
+				}
+			});
 		});
 		it('#Unknown command', (done) => {
-			try {
-				execute('vfduisvbfiudnvfdkxu', [], undefined, (_, success) => {
-					if (success) {
+			execute('vfduisvbfiudnvfdkxu', [], undefined, (error, result) => {
+				if (error) {
+					done(new Error(`Didn't expected an error to happend\nError:\n${error}`));
+				} else {
+					if (result.success) {
 						done(new Error('Shouldn\'t succeed'));
 					} else {
 						done();
 					}
-				});
-			} catch (e) {
-				done(new Error(`Didn't expected an error to happend\nError:\n${e}`));
-			}
+				}
+			});
 		});
 		it('#Expected exit status to be 1', (done) => {
-			try {
-				execute('exit \'!?!\'', ['1'], 1, (sc, success) => {
+			execute('exit \'!?!\'', ['1'], 1, (error, { shellCommand, success }) => {
+				if (error) {
+					done(new Error(`Didn't expected an error to happend\nError:\n${e}`));
+				} else {
 					if (success) {
 						done();
 					} else {
-						done(new Error(`The exit status should be equals to ${sc.expectedExitStatus} but it is ${sc.exitStatus}`));
+						done(new Error(`The exit status should be equals to ${shellCommand.expectedExitStatus} but it is ${shellCommand.exitStatus}`));
 					}
-				});
-			} catch (e) {
-				done(new Error(`Didn't expected an error to happend\nError:\n${e}`));
-			}
+				}
+			});
 		});
 	} else {
-		it('#Bad platform', () => {
-			assert.throws(() => execute('ls \'!?!\'', ['/'], undefined, () => { }), 'Shouldn\'t work on this platform');
+		it('#Bad platform', (done) => {
+			execute('ls \'!?!\'', ['/'], undefined, (error, result) => {
+				if(error){
+					if (error.message === 'This module only runs on linux'){
+						if(typeof result === undefined){
+							done();
+						}else{
+							done(new Error('The result should be undefined when the error is not null'));
+						}
+					}else{
+						done(new Error(`Didn't expected this error to happend\nError:\n${error}`));
+					}
+				}else{
+					done(new Error('Shouldn\'t work on this platform'));
+				}
+			});
 		});
 	}
 });
