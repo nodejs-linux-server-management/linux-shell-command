@@ -1,6 +1,6 @@
 {
 	"name": "linux-shell-command",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "Spawn wrapper",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

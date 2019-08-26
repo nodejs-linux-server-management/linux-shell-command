@@ -4,4 +4,4 @@ export declare function execute(command: string, args?: string[], expectedExitSt
     shellCommand: ShellCommand;
     success: boolean;
 }>;
-export declare function execute(command: string, args: string[], expectedExitStatus: number, callback: (shellCommand: ShellCommand, success: boolean) => void): ShellCommand;
+export declare function execute(command: string, args: string[], expectedExitStatus: number | undefined, callback: (shellCommand: ShellCommand, success: boolean) => void): ShellCommand;
